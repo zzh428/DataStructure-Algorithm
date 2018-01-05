@@ -40,6 +40,8 @@ int main()
 	graph.prim();
 	ofstream fout("out.csv", ios::out);
 	graph.showCtrlty(fout);
+	fout.close();
+	fout.open("tree.csv",ios::out);
 	graph.showShortestTree(fout);
 #endif // TEST2
 

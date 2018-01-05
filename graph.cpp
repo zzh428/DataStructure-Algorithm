@@ -346,13 +346,23 @@ void Graph::prim()
 		nodes[vPrim[i]].distance = newEdgeDist;
 		nodes[vPrim[i]].prior = newEdge.first;
 	}
+	delete[] vPrim;
 }
 
 void Graph::showShortestTree(ostream& out) const
 {
+	out << "树边,权值" << endl;
+	int totalTreeEdge = 0;
+	int totalDist = 0;
 	for(int i = 1; i < vertex_num; i++)
 	{
 		if(nodes[i].prior != -1)
-			out << nodes[i].prior << ',' << i << ',' << nodes[i].distance << endl;
+		{
+			out << nodes[i].prior << " -> " << i << ',' << nodes[i].distance << endl;
+			totalTreeEdge++;
+			totalDist += nodes[i].distance;
+		}
 	}
+	out << "总边数:" << ',' << totalTreeEdge << endl;
+	out << "总权值:" << ',' << totalDist << endl;
 }

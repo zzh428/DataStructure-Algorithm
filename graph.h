@@ -44,8 +44,8 @@ public:
 	int shortestPath(int begin, int end); //求从begin到end之间的最短路径
 	void centrality(); //求每个节点的中心度
 	void showCtrlty(ostream& out) const; //输出每个节点的中心度
-	void prim(); //TODO: 用prim算法求图的最小生成树
-	void showShortestTree(ostream& out) const;
+	void prim(); //用prim算法求图的最小生成树
+	void showShortestTree(ostream& out) const;//输出最小生成树
 private:
 	void initNode()
 	{
