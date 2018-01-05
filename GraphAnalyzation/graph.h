@@ -3,7 +3,10 @@
 
 #include <list>
 #include <vector>
+#include <string>	
 #include <iostream>
+#include <map>
+#include <set>
 using namespace std;
 
 const int MAX_DIST = (int)1e8;
@@ -17,6 +20,10 @@ struct GraphNode
 	int degree; //该节点的度数
 	int closeness; //该节点的接近中心度
 	int betweenness; //该节点的介数中心度
+
+	int movieID;
+	string movieName;
+	set<int> userSet;
 	GraphNode(): mark(false), distance(0), prior(-1),
 		degree(0), closeness(0), betweenness(0)
 	{
@@ -26,8 +33,12 @@ struct GraphNode
 class Graph
 {
 public:
+	Graph();
 	Graph(int v);
 	~Graph();
+	void init();
+	void extractInfo(string& movieName, string& userName, const string& text);
+	void createGraph();
 	void addEdge(int begin, int end, int weight); //向图中添加边
 	void floyd(); //用floyd算法求每两点间的最短路径
 	int shortestPath(int begin, int end); //求从begin到end之间的最短路径
@@ -52,6 +63,9 @@ private:
 	int **distMatrix; //图的最短距离矩阵
 	int **pathMatrix; //图的最短距离路径矩阵
 	vector<GraphNode> nodes; //储存每个节点的信息
+	map<string, int> movieMap; //电影名与ID的映射
+	map<string, int> userMap; //用户名与ID的映射
+	string filename;
 };
 
 #endif // !GRAPH_H

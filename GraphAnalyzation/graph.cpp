@@ -1,7 +1,133 @@
 #include <stack>
+#include <fstream>
 #include "graph.h"
 
-Graph::Graph(int v) :vertex_num(v), edge_num(0)
+Graph::Graph() :vertex_num(0), edge_num(0), graphMatrix(nullptr), distMatrix(nullptr), pathMatrix(nullptr)
+{
+	filename = "user.csv";
+	init();
+	graphMatrix = new int*[vertex_num];
+	for (int i = 0; i < vertex_num; ++i)
+	{
+		graphMatrix[i] = new int[vertex_num];
+		for (int j = 0; j < vertex_num; ++j)
+		{
+			graphMatrix[i][j] = MAX_DIST;
+		}
+	}
+	for (int i = 0; i < vertex_num; ++i)
+	{
+		graphMatrix[i][i] = 0;
+	}
+	createGraph();
+}
+
+void Graph::init()
+{
+	ifstream fin(filename.c_str(), ios::in);
+	if (fin.is_open())
+	{
+		int Init = 0;
+		string text, movieName, userName;
+		int movieID = 0, userID = 0;
+		while (getline(fin, text))
+		{
+			if (!text.empty())
+			{
+				extractInfo(movieName, userName, text);
+				if (movieMap.find(movieName) == movieMap.end())
+				{
+					movieMap.insert(pair<string, int>(movieName, movieID));
+					GraphNode node;
+					node.movieID = movieID;
+					node.movieName = movieName;
+					nodes.push_back(node);
+					++movieID;
+				}
+				if (userMap.find(userName) == userMap.end())
+				{
+					userMap.insert(pair<string, int>(userName, userID++));
+				}
+			}
+		}
+		vertex_num = movieID;
+	}
+}
+
+void Graph::createGraph()
+{
+	ifstream fin(filename.c_str(), ios::in);
+	if (fin.is_open())
+	{
+		int cur = 0, processing = 0;
+		string text, movieName, userName;
+		while (getline(fin, text))
+		{
+			//cout << processing++ << endl;
+			extractInfo(movieName, userName, text);
+			int movieID = movieMap[movieName], userID = userMap[userName];
+			if (movieID > cur)
+			{
+				cur = movieID;
+			}
+			if (nodes[movieID].userSet.find(userID) == nodes[movieID].userSet.end())
+			{
+				nodes[movieID].userSet.insert(userID);
+			}
+			for (int i = 0; i <= cur; ++i)
+			{
+				if (i != movieID)
+				{
+					if (nodes[i].userSet.find(userID) != nodes[i].userSet.end())
+					{
+						if (graphMatrix[i][movieID] != MAX_DIST)
+						{
+							++graphMatrix[i][movieID];
+							++graphMatrix[movieID][i];
+						}
+						else
+						{
+							graphMatrix[i][movieID] = 1;
+							graphMatrix[movieID][i] = 1;
+							++edge_num;
+						}
+					}
+				}
+			}
+			/*
+			for (auto iter = nodes.begin(); iter != nodes.end(); ++iter)
+			{
+				if (iter->movieID != movieID)
+				{
+					if (iter->userSet.find(userID) != iter->userSet.end())
+					{
+						if (graphMatrix[iter->movieID][movieID] != MAX_DIST)
+						{
+							++graphMatrix[iter->movieID][movieID];
+							++graphMatrix[movieID][iter->movieID];
+						}
+						else
+						{
+							graphMatrix[iter->movieID][movieID] = 1;
+							graphMatrix[movieID][iter->movieID] = 1;
+							++edge_num;
+						}
+					}
+				}
+			}
+			*/
+		}
+	}
+}
+
+void Graph::extractInfo(string& movieName, string& userName, const string& text)
+{
+	int split = text.find(",");
+	movieName = text.substr(0, split);
+	userName = text.substr(split + 1, text.size() - split - 1);
+}
+
+Graph::Graph(int v) :vertex_num(v), edge_num(0), distMatrix(nullptr), pathMatrix(nullptr)
 {
 	for (int i = 0; i < vertex_num; ++i)
 	{
@@ -20,7 +146,6 @@ Graph::Graph(int v) :vertex_num(v), edge_num(0)
 	{
 		graphMatrix[i][i] = 0;
 	}
-	distMatrix = pathMatrix = nullptr;
 }
 
 Graph::~Graph()
@@ -184,10 +309,11 @@ void Graph::centrality()
 
 void Graph::showCtrlty(ostream& out) const
 {
-	out << "节点" << "," << "点度中心度" << "," << "接近中心度" << "," << "介数中心度" << endl;
+	out << "节点" << "," << "名称" << "," << "点度中心度" << "," << "接近中心度" << "," << "介数中心度" << endl;
 	for (int i = 0; i < vertex_num; ++i)
 	{
 		out << i << ",";
+		out << nodes[i].movieName << " ,";
 		out << nodes[i].degree << ",";
 		out << "1/" << nodes[i].closeness << ",";
 		out << nodes[i].betweenness << endl;

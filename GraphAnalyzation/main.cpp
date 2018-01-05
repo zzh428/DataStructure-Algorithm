@@ -3,11 +3,11 @@
 #include "graph.h"
 using namespace std;
 
-#define TEST
+#define TEST2
 
 int main()
 {
-#ifdef TEST
+#ifdef TEST1
 	int v, e, Ts, Te;
 	cin >> v >> e >> Ts >> Te;
 	Graph graph(v);
@@ -30,5 +30,14 @@ int main()
 	ofstream out("out.csv", ios::out);
 	graph.showCtrlty(out);
 #endif // TEST
+
+#ifdef TEST2
+	Graph graph;
+	graph.floyd();
+	graph.centrality();
+	ofstream fout("out.csv", ios::out);
+	graph.showCtrlty(fout);
+#endif // TEST2
+
 	return 0;
 }
