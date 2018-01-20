@@ -1,8 +1,10 @@
-#include <stack>
+ï»¿#include <stack>
 #include <fstream>
+#include <QFile>
+#include <QTextStream>
 #include "graph.h"
 
-Graph::Graph() :vertex_num(0), edge_num(0), graphMatrix(nullptr), distMatrix(nullptr), pathMatrix(nullptr)
+Graph::Graph() :vertex_num(0), edge_num(0), graphMatrix(nullptr), distMatrix(nullptr), pathMatrix(nullptr), treeEdge_num(0)
 {
 	filename = "user.csv";
 	init();
@@ -175,12 +177,12 @@ Graph::~Graph()
 
 void Graph::addEdge(int begin, int end, int weight)
 {
-	graphMatrix[begin][end] = weight; //ÏòÁÚ½Ó¾ØÕóÖĞÌí¼Ó±ß
+	graphMatrix[begin][end] = weight; //å‘é‚»æ¥çŸ©é˜µä¸­æ·»åŠ è¾¹
 }
 
 void Graph::floyd()
 {
-	if (distMatrix == nullptr) //³õÊ¼»¯Â·³Ì¾ØÕóºÍÂ·¾¶¾ØÕó
+	if (distMatrix == nullptr) //åˆå§‹åŒ–è·¯ç¨‹çŸ©é˜µå’Œè·¯å¾„çŸ©é˜µ
 	{
 		distMatrix = new int*[vertex_num];
 		pathMatrix = new int*[vertex_num];
@@ -207,7 +209,7 @@ void Graph::floyd()
 		}
 	}
 
-	//floydËã·¨
+	//floydç®—æ³•
 	for (int k = 0; k < vertex_num; ++k)
 	{
 		for (int i = 0; i < vertex_num; ++i)
@@ -232,34 +234,35 @@ int Graph::shortestPath(int begin, int end)
 	{
 		floyd();
 	}
-
-	//Í¨¹ıÂ·¾¶¾ØÕóÇó×î¶ÌÂ·Â·¾¶
+    ofstream stream("path.txt");
+	//é€šè¿‡è·¯å¾„çŸ©é˜µæ±‚æœ€çŸ­è·¯è·¯å¾„
 	if (distMatrix[begin][end] != MAX_DIST && distMatrix[begin][end] != 0)
 	{
-		cout << distMatrix[begin][end] << "\t";
+        stream << begin << ' ' << end << ' ' <<distMatrix[begin][end] << '\n';
 		int p = end;
 		stack<int> path;
 		path.push(p);
-		do
-		{
-			p = pathMatrix[begin][p];
-			path.push(p);
-		} while (p != begin);
-		int s = path.size();
+        do
+        {
+            p = pathMatrix[begin][p];
+            path.push(p);
+        } while (p != begin);
+        int s = path.size();
 		for (int i = 0; i < s; ++i)
 		{
-			cout << path.top();
+            stream << path.top();
 			path.pop();
 			if (i != s - 1)
-				cout << " -> ";
+                stream << ' ';
 		}
-		cout << endl;
+        stream << endl;
 	}
 	else
 	{
-		cout << " No Path" << endl;
+        stream << " No Path" << endl;
 	}
-	return distMatrix[begin][end]; //·µ»Ø×î¶Ì¾àÀë
+    stream.close();
+	return distMatrix[begin][end]; //è¿”å›æœ€çŸ­è·ç¦»
 }
 
 void Graph::centrality()
@@ -275,11 +278,11 @@ void Graph::centrality()
 		{
 			if (i != j && distMatrix[i][j] != MAX_DIST)
 			{
-				nodes[i].closeness += distMatrix[i][j]; //Çó½Ó½üÖĞĞÄ¶È
+				nodes[i].closeness += distMatrix[i][j]; //æ±‚æ¥è¿‘ä¸­å¿ƒåº¦
 			}
 			if (i != j && graphMatrix[i][j] != MAX_DIST)
 			{
-				++nodes[i].degree; //Çóµã¶ÈÖĞĞÄ¶È
+				++nodes[i].degree; //æ±‚ç‚¹åº¦ä¸­å¿ƒåº¦
 			}
 		}
 	}
@@ -291,7 +294,7 @@ void Graph::centrality()
 				continue;
 			for (int j = 0; j < vertex_num; ++j)
 			{
-				//Èç¹ûÄ³½Úµãµ½ÁíÁ½¸ö½ÚµãµÄ¾àÀëÖ®ºÍµÈÓÚ¸ÃÁ½¸ö½ÚµãµÄ×î¶Ì¾àÀë£¬ËµÃ÷ÆäÔÚÕâÁ½¸ö½ÚµãµÄ×î¶ÌÂ·¾¶ÉÏ
+				//å¦‚æœæŸèŠ‚ç‚¹åˆ°å¦ä¸¤ä¸ªèŠ‚ç‚¹çš„è·ç¦»ä¹‹å’Œç­‰äºè¯¥ä¸¤ä¸ªèŠ‚ç‚¹çš„æœ€çŸ­è·ç¦»ï¼Œè¯´æ˜å…¶åœ¨è¿™ä¸¤ä¸ªèŠ‚ç‚¹çš„æœ€çŸ­è·¯å¾„ä¸Š
 				if (j != k && distMatrix[i][j] == distMatrix[i][k] + distMatrix[k][j])
 				{
 					++nodes[k].betweenness;
@@ -300,7 +303,7 @@ void Graph::centrality()
 		}
 	}
 
-	//ÓÉÓÚÎŞÏòÍ¼µÄÁÚ½Ó¾ØÕóÎª¶Ô³Æ¾ØÕó£¬Òò´ËÃ¿¸öµãµÄ½éÊıÖĞĞÄ¶È±»¼ÆËãÁËÁ½´Î
+	//ç”±äºæ— å‘å›¾çš„é‚»æ¥çŸ©é˜µä¸ºå¯¹ç§°çŸ©é˜µï¼Œå› æ­¤æ¯ä¸ªç‚¹çš„ä»‹æ•°ä¸­å¿ƒåº¦è¢«è®¡ç®—äº†ä¸¤æ¬¡
 	for (int i = 0; i < vertex_num; ++i)
 	{
 		nodes[i].betweenness /= 2;
@@ -309,7 +312,7 @@ void Graph::centrality()
 
 void Graph::showCtrlty(ostream& out) const
 {
-	out << "½Úµã" << "," << "Ãû³Æ" << "," << "µã¶ÈÖĞĞÄ¶È" << "," << "½Ó½üÖĞĞÄ¶È" << "," << "½éÊıÖĞĞÄ¶È" << endl;
+	out << "èŠ‚ç‚¹" << "," << "åç§°" << "," << "ç‚¹åº¦ä¸­å¿ƒåº¦" << "," << "æ¥è¿‘ä¸­å¿ƒåº¦" << "," << "ä»‹æ•°ä¸­å¿ƒåº¦" << endl;
 	for (int i = 0; i < vertex_num; ++i)
 	{
 		out << i << ",";
@@ -349,20 +352,156 @@ void Graph::prim()
 	delete[] vPrim;
 }
 
-void Graph::showShortestTree(ostream& out) const
+void Graph::showShortestTree(ostream& out)
 {
-	out << "Ê÷±ß,È¨Öµ" << endl;
+    out << "èµ·ç‚¹ ç»ˆç‚¹ æƒå€¼" << endl;
 	int totalTreeEdge = 0;
 	int totalDist = 0;
 	for(int i = 1; i < vertex_num; i++)
 	{
 		if(nodes[i].prior != -1)
 		{
-			out << nodes[i].prior << " -> " << i << ',' << nodes[i].distance << endl;
+            out << nodes[i].prior << ' ' << i << ' ' << nodes[i].distance << endl;
 			totalTreeEdge++;
 			totalDist += nodes[i].distance;
 		}
 	}
-	out << "×Ü±ßÊı:" << ',' << totalTreeEdge << endl;
-	out << "×ÜÈ¨Öµ:" << ',' << totalDist << endl;
+    treeEdge_num = totalTreeEdge;
+    out << "æ€»è¾¹æ•°:" << '\n' << totalTreeEdge << endl;
+    out << "æ€»æƒå€¼:" << '\n' << totalDist << endl;
+}
+
+void Graph::showShortestPathGraph()
+{
+    ofstream out("graph.html");
+    const string code1 = "<html>\n<head>\n<meta charset=\"utf-8\">\n<title></title>\n</head>\n<h1>";
+    const string code2 = "</h1>\n<body>\n<script src=\"http://d3js.org/d3.v3.min.js\" charset=\"utf-8\"></script>\n<script>\nvar nodes = [ ";
+    out << code1;
+    int begin , end, length;
+    QFile path("path.txt");
+        path.open(QIODevice::ReadOnly);
+        QTextStream pathStream(&path);
+        pathStream >> begin >> end >> length;
+        out << "æœ€çŸ­è·¯å¾„(" << begin << " -> " << end << ") " << "é•¿åº¦: " << length << "<br \\>\n";
+        vector<int> pathNode;
+        while(!pathStream.atEnd())
+        {
+            int node;
+            pathStream >> node;
+            pathNode.push_back(node);
+        }
+        for(int i = 0; i < pathNode.size() - 1; i++)
+        {
+            out << pathNode[i];
+            if(i != pathNode.size() - 2)
+                out << " -> ";
+        }
+        out << code2;
+        for(int i = 0; i < vertex_num ;i++)
+        {
+            out << "{ name: \"" << nodes[i].movieName << "\" , " << "id: " << nodes[i].movieID << " } ";
+            if(i != vertex_num-1)
+                out << " ,\n ";
+        }
+        out << " ];\n var edges = [ ";
+        for(int i = 0; i < pathNode.size() - 2 ;i++)
+        {
+            out << "{ source: " << pathNode[i] << " , target: " << pathNode[i+1] << " } ";
+            if(i != pathNode.size() - 3)
+                out << " ,\n ";
+        }
+        out << " ];\n";
+        QFile htmlCode("shortestPathHtml.txt");
+        htmlCode.open(QIODevice::ReadOnly);
+        QTextStream codeStream(&htmlCode);
+        out << codeStream.readAll().toStdString();
+        out.close();
+}
+
+void Graph::showShortestTreeGraph()
+{
+    ofstream out("graph.html");
+    const string code1 = "<html>\n<head>\n<meta charset=\"utf-8\">\n<title></title>\n</head>\n<h1>";
+    const string code2 = "</h1>\n<body>\n<script src=\"http://d3js.org/d3.v3.min.js\" charset=\"utf-8\"></script>\n<script>\nvar nodes = [ ";
+    out << code1;
+    QFile tree("tree.txt");
+        tree.open(QIODevice::ReadOnly);
+        QTextStream treeStream(&tree);
+        treeStream.readLine();
+        out << "æœ€å°ç”Ÿæˆæ ‘" << "\n";
+        out << code2;
+        vector<pair<int,int>> treeEdges;
+        vector<int> edgeLength;
+        for(int i = 0;i < treeEdge_num; i++)
+        {
+            int first,second,length;
+            treeStream >> first >> second >> length;
+            treeEdges.push_back(make_pair(first,second));
+            edgeLength.push_back(length);
+        }
+        for(int i = 0; i < vertex_num ;i++)
+        {
+            out << "{ name: \"" << nodes[i].movieName << "\" , " << "id: " << nodes[i].movieID << " } ";
+            if(i != vertex_num-1)
+                out << " ,\n ";
+        }
+        out << " ];\n var edges = [ ";
+        for(int i = 0; i < treeEdge_num ;i++)
+        {
+            out << "{ source: " << treeEdges[i].first << " , target: " << treeEdges[i].second << " } ";
+            if(i != treeEdge_num-1)
+                out << " ,\n ";
+        }
+        out << " ];\n";
+        QFile htmlCode("shortestTreeHtml.txt");
+        htmlCode.open(QIODevice::ReadOnly);
+        QTextStream codeStream(&htmlCode);
+        out << codeStream.readAll().toStdString();
+        out.close();
+}
+
+void Graph::showBetweennessGraph()
+{
+    ofstream out("graph.html");
+    const string code1 = "<html>\n<head>\n<meta charset=\"utf-8\">\n<title></title>\n</head>\n<h1>";
+    const string code2 = "</h1>\n<body>\n<script src=\"http://d3js.org/d3.v3.min.js\" charset=\"utf-8\"></script>\n<script>\nvar nodes = [ ";
+    out << code1;
+    out << "ä»‹æ•°ä¸­å¿ƒåº¦\n" ;
+    out << code2;
+    for(int i = 0; i < vertex_num ;i++)
+    {
+        out << "{ name: \"" << nodes[i].movieName << "\" , " << "id: " << nodes[i].movieID << " , value: " << nodes[i].betweenness << " } ";
+        if(i != vertex_num-1)
+            out << " ,\n ";
+    }
+    out << " ];\n var edges = [ ];\n";
+    QFile htmlCode("betweennessHtml.txt");
+    htmlCode.open(QIODevice::ReadOnly);
+    QTextStream codeStream(&htmlCode);
+    out << codeStream.readAll().toStdString();
+    out.close();
+}
+
+void Graph::showClosenessGraph()
+{
+    ofstream out("graph.html");
+    const string code1 = "<html>\n<head>\n<meta charset=\"utf-8\">\n<title></title>\n</head>\n<h1>";
+    const string code2 = "</h1>\n<body>\n<script src=\"http://d3js.org/d3.v3.min.js\" charset=\"utf-8\"></script>\n<script>\nvar nodes = [ ";
+    out << code1;
+    out << "ç´§å¯†ä¸­å¿ƒåº¦\n" ;
+    out << code2;
+
+    for(int i = 0; i < vertex_num ;i++)
+    {
+        int closeness = (nodes[i].closeness > 0) ? nodes[i].closeness : 10000;
+        out << "{ name: \"" << nodes[i].movieName << "\" , " << "id: " << nodes[i].movieID << " , value: " << closeness << " } ";
+        if(i != vertex_num-1)
+            out << " ,\n ";
+    }
+    out << " ];\n var edges = [ ];\n";
+    QFile htmlCode("closenessHtml.txt");
+    htmlCode.open(QIODevice::ReadOnly);
+    QTextStream codeStream(&htmlCode);
+    out << codeStream.readAll().toStdString();
+    out.close();
 }

@@ -13,13 +13,13 @@ const int MAX_DIST = (int)1e8;
 
 struct GraphNode
 {
-	bool mark; //ÓÃÓÚ±ê¼Ç
-	int distance; //ÓÃÓÚ¼ÇÂ¼×î¶ÌÂ·¾¶ÖĞµ½ÆğµãµÄ¾àÀë»ò×îĞ¡Éú³ÉÊ÷ÖĞµ½Ê÷µÄ¾àÀë
-	int prior; //ÓÃÓÚ¼ÇÂ¼×î¶ÌÂ·¾¶»ò×îĞ¡Éú³ÉÊ÷ÖĞµÄµ±Ç°½ÚµãµÄÇ°¼Ì
+	bool mark; //ç”¨äºæ ‡è®°
+	int distance; //ç”¨äºè®°å½•æœ€çŸ­è·¯å¾„ä¸­åˆ°èµ·ç‚¹çš„è·ç¦»æˆ–æœ€å°ç”Ÿæˆæ ‘ä¸­åˆ°æ ‘çš„è·ç¦»
+	int prior; //ç”¨äºè®°å½•æœ€çŸ­è·¯å¾„æˆ–æœ€å°ç”Ÿæˆæ ‘ä¸­çš„å½“å‰èŠ‚ç‚¹çš„å‰ç»§
 
-	int degree; //¸Ã½ÚµãµÄ¶ÈÊı
-	int closeness; //¸Ã½ÚµãµÄ½Ó½üÖĞĞÄ¶È
-	int betweenness; //¸Ã½ÚµãµÄ½éÊıÖĞĞÄ¶È
+	int degree; //è¯¥èŠ‚ç‚¹çš„åº¦æ•°
+	int closeness; //è¯¥èŠ‚ç‚¹çš„æ¥è¿‘ä¸­å¿ƒåº¦
+	int betweenness; //è¯¥èŠ‚ç‚¹çš„ä»‹æ•°ä¸­å¿ƒåº¦
 
 	int movieID;
 	string movieName;
@@ -28,7 +28,7 @@ struct GraphNode
 		degree(0), closeness(0), betweenness(0)
 	{
 	}
-}; //Ã¿¸ö½ÚµãµÄĞÅÏ¢
+}; //æ¯ä¸ªèŠ‚ç‚¹çš„ä¿¡æ¯
 
 class Graph
 {
@@ -39,13 +39,17 @@ public:
 	void init();
 	void extractInfo(string& movieName, string& userName, const string& text);
 	void createGraph();
-	void addEdge(int begin, int end, int weight); //ÏòÍ¼ÖĞÌí¼Ó±ß
-	void floyd(); //ÓÃfloydËã·¨ÇóÃ¿Á½µã¼äµÄ×î¶ÌÂ·¾¶
-	int shortestPath(int begin, int end); //Çó´Óbeginµ½endÖ®¼äµÄ×î¶ÌÂ·¾¶
-	void centrality(); //ÇóÃ¿¸ö½ÚµãµÄÖĞĞÄ¶È
-	void showCtrlty(ostream& out) const; //Êä³öÃ¿¸ö½ÚµãµÄÖĞĞÄ¶È
-	void prim(); //ÓÃprimËã·¨ÇóÍ¼µÄ×îĞ¡Éú³ÉÊ÷
-	void showShortestTree(ostream& out) const;//Êä³ö×îĞ¡Éú³ÉÊ÷
+	void addEdge(int begin, int end, int weight); //å‘å›¾ä¸­æ·»åŠ è¾¹
+	void floyd(); //ç”¨floydç®—æ³•æ±‚æ¯ä¸¤ç‚¹é—´çš„æœ€çŸ­è·¯å¾„
+	int shortestPath(int begin, int end); //æ±‚ä»beginåˆ°endä¹‹é—´çš„æœ€çŸ­è·¯å¾„
+	void centrality(); //æ±‚æ¯ä¸ªèŠ‚ç‚¹çš„ä¸­å¿ƒåº¦
+	void showCtrlty(ostream& out) const; //è¾“å‡ºæ¯ä¸ªèŠ‚ç‚¹çš„ä¸­å¿ƒåº¦
+	void prim(); //ç”¨primç®—æ³•æ±‚å›¾çš„æœ€å°ç”Ÿæˆæ ‘
+    void showShortestTree(ostream& out);//è¾“å‡ºæœ€å°ç”Ÿæˆæ ‘
+    void showShortestPathGraph();
+    void showShortestTreeGraph();
+    void showBetweennessGraph();
+    void showClosenessGraph();
 private:
 	void initNode()
 	{
@@ -55,17 +59,18 @@ private:
 			nodes[i].distance = MAX_DIST;
 			nodes[i].prior = -1;
 		}
-	} //ÓÃÓÚdijkstraËã·¨ºÍprimËã·¨ÖĞ½ÚµãĞÅÏ¢µÄ³õÊ¼»¯
+	} //ç”¨äºdijkstraç®—æ³•å’Œprimç®—æ³•ä¸­èŠ‚ç‚¹ä¿¡æ¯çš„åˆå§‹åŒ–
 
-	int edge_num; //±ßµÄÊıÁ¿
-	int vertex_num; //½ÚµãµÄÊıÁ¿
-	int **graphMatrix; //Í¼µÄÁÚ½Ó¾ØÕó
-	int **distMatrix; //Í¼µÄ×î¶Ì¾àÀë¾ØÕó
-	int **pathMatrix; //Í¼µÄ×î¶Ì¾àÀëÂ·¾¶¾ØÕó
-	vector<GraphNode> nodes; //´¢´æÃ¿¸ö½ÚµãµÄĞÅÏ¢
-	map<string, int> movieMap; //µçÓ°ÃûÓëIDµÄÓ³Éä
-	map<string, int> userMap; //ÓÃ»§ÃûÓëIDµÄÓ³Éä
+	int edge_num; //è¾¹çš„æ•°é‡
+	int vertex_num; //èŠ‚ç‚¹çš„æ•°é‡
+	int **graphMatrix; //å›¾çš„é‚»æ¥çŸ©é˜µ
+	int **distMatrix; //å›¾çš„æœ€çŸ­è·ç¦»çŸ©é˜µ
+	int **pathMatrix; //å›¾çš„æœ€çŸ­è·ç¦»è·¯å¾„çŸ©é˜µ
+	vector<GraphNode> nodes; //å‚¨å­˜æ¯ä¸ªèŠ‚ç‚¹çš„ä¿¡æ¯
+	map<string, int> movieMap; //ç”µå½±åä¸IDçš„æ˜ å°„
+	map<string, int> userMap; //ç”¨æˆ·åä¸IDçš„æ˜ å°„
 	string filename;
+    int treeEdge_num;
 };
 
 #endif // !GRAPH_H
